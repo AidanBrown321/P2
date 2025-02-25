@@ -159,6 +159,60 @@ void test_ch_dir_root(void)
      cmd_free(cmd);
 }
 
+// New Tests
+
+/**
+ * Test for empty command parsing
+ */
+ void test_cmd_parse_empty(void) {
+     char **result = cmd_parse("");
+     TEST_ASSERT_TRUE(result);
+     TEST_ASSERT_NULL(result[0]);
+     cmd_free(result);
+     
+     result = cmd_parse("   ");
+     TEST_ASSERT_TRUE(result);
+     TEST_ASSERT_NULL(result[0]);
+     cmd_free(result);
+ }
+
+ /**
+ * Test for command parsing with memory cleanup
+ */
+void test_cmd_free(void) {
+     char **cmd = cmd_parse("test command");
+     TEST_ASSERT_TRUE(cmd);
+     cmd_free(cmd);
+     // Can't directly test memory deallocation in C unit tests,
+     // but this verifies the function doesn't crash
+ }
+
+ /**
+ * Test for built-in command detection
+ */
+void test_do_builtin_detection(void) {
+     struct shell sh;
+     sh_init(&sh);
+     
+     // Test exit command (can't fully test as it would exit the test process)
+     char *exit_cmd[] = {"exit", NULL};
+     TEST_ASSERT_TRUE(do_builtin(&sh, exit_cmd));
+     
+     // Test cd command
+     char *cd_cmd[] = {"cd", NULL};
+     TEST_ASSERT_TRUE(do_builtin(&sh, cd_cmd));
+     
+     // Test history command 
+     char *history_cmd[] = {"history", NULL};
+     TEST_ASSERT_TRUE(do_builtin(&sh, history_cmd));
+     
+     // Test non-builtin command
+     char *ls_cmd[] = {"ls", NULL};
+     TEST_ASSERT_FALSE(do_builtin(&sh, ls_cmd));
+     
+     sh_destroy(&sh);
+ }
+
 int main(void) {
   UNITY_BEGIN();
   RUN_TEST(test_cmd_parse);
@@ -173,6 +227,9 @@ int main(void) {
   RUN_TEST(test_get_prompt_custom);
   RUN_TEST(test_ch_dir_home);
   RUN_TEST(test_ch_dir_root);
+  RUN_TEST(test_cmd_parse_empty);
+  RUN_TEST(test_cmd_free);
+  RUN_TEST(test_do_builtin_detection);
 
   return UNITY_END();
 }
