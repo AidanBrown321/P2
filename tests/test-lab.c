@@ -176,16 +176,7 @@ void test_ch_dir_root(void)
      cmd_free(result);
  }
 
- /**
- * Test for command parsing with memory cleanup
- */
-void test_cmd_free(void) {
-     char **cmd = cmd_parse("test command");
-     TEST_ASSERT_TRUE(cmd);
-     cmd_free(cmd);
-     // Can't directly test memory deallocation in C unit tests,
-     // but this verifies the function doesn't crash
- }
+
 
  /**
  * Test for built-in command detection
@@ -213,6 +204,46 @@ void test_do_builtin_detection(void) {
      sh_destroy(&sh);
  }
 
+  /**
+ * Test for command parsing with memory cleanup
+ */
+void test_cmd_free(void) {
+     char **cmd = cmd_parse("test command");
+     TEST_ASSERT_TRUE(cmd);
+     cmd_free(cmd);
+ }
+
+ void test_parse_args_unknown_flag(void) {
+     // Mimic argv with an unknown flag
+     char *argv[] = {"myprogram", "-x", NULL};
+     parse_args(2, argv);
+     // Ensure no exit or crash
+ }
+ 
+ void test_sh_init_non_interactive(void) {
+     struct shell sh;
+     sh.shell_terminal = -1; // Simulate non-interactive
+     sh_init(&sh);
+     TEST_ASSERT_FALSE(sh.shell_is_interactive);
+     sh_destroy(&sh);
+ }
+ 
+ void test_change_dir_invalid(void) {
+     char *cd_cmd[] = {"cd", "/nonexistent", NULL};
+     int result = change_dir(cd_cmd);
+     TEST_ASSERT_EQUAL_INT(-1, result);
+ }
+ 
+ void test_cmd_parse_special_chars(void) {
+     char **result = cmd_parse("echo $HOME");
+     TEST_ASSERT_TRUE(result);
+     TEST_ASSERT_EQUAL_STRING("echo", result[0]);
+     TEST_ASSERT_EQUAL_STRING("$HOME", result[1]);
+     TEST_ASSERT_NULL(result[2]);
+     cmd_free(result);
+ }
+
+
 int main(void) {
   UNITY_BEGIN();
   RUN_TEST(test_cmd_parse);
@@ -230,6 +261,11 @@ int main(void) {
   RUN_TEST(test_cmd_parse_empty);
   RUN_TEST(test_cmd_free);
   RUN_TEST(test_do_builtin_detection);
+  RUN_TEST(test_parse_args_unknown_flag);
+  RUN_TEST(test_sh_init_non_interactive);
+  RUN_TEST(test_change_dir_invalid);
+  RUN_TEST(test_cmd_parse_special_chars);
+  
 
   return UNITY_END();
 }
