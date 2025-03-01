@@ -9,6 +9,7 @@
 #include <readline/history.h>
 #include <sys/wait.h>
 #include <errno.h>
+#include <signal.h> //Added this from the code review
 
 /**
  * Parses command line arguments
